@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  cv_bridge
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
@@ -116,7 +118,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -204,3 +206,13 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+# add_library(QrCodeDetector SHARED src/qrcode.cpp)
+add_executable(MyDetector src/qrcode.cpp src/target_detector.cpp)
+find_package(OpenCV REQUIRED)
+# find_package(PythonLibs 2.7 REQUIRED)
+
+target_link_libraries(MyDetector ${OpenCV_LIBS} ${catkin_LIBRARIES})
+# target_link_libraries(MyDetector ${PYTHON_LIBRARIES})
+target_include_directories(MyDetector SYSTEM PUBLIC ${OpenCV_INCLUDE_DIRS})
+# target_include_directories(MyDetector SYSTEM PUBLIC ${PYTHON_INCLUDE_DIRS})
