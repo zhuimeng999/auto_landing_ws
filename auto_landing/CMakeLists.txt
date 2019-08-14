@@ -13,6 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   cv_bridge
   image_transport
+  mavros
+        tf
+
 )
 
 ## System dependencies are found with CMake's conventions
@@ -216,3 +219,6 @@ target_link_libraries(MyDetector ${OpenCV_LIBS} ${catkin_LIBRARIES})
 # target_link_libraries(MyDetector ${PYTHON_LIBRARIES})
 target_include_directories(MyDetector SYSTEM PUBLIC ${OpenCV_INCLUDE_DIRS})
 # target_include_directories(MyDetector SYSTEM PUBLIC ${PYTHON_INCLUDE_DIRS})
+
+add_executable(MyControler src/myControler.cpp)
+target_link_libraries(MyControler ${catkin_LIBRARIES})

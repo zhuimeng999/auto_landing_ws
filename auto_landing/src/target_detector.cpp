@@ -14,8 +14,8 @@ class MyDetector
 {
   ros::NodeHandle nh_;
   image_transport::ImageTransport it_;
-  image_transport::Subscriber image_sub_;
-  image_transport::Publisher image_pub_;
+  ros::Subscriber image_sub_;
+  ros::Publisher image_pub_;
 
   QRCodeDetector qrdetector;
 public:
@@ -23,22 +23,22 @@ public:
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
-    image_sub_ = it_.subscribe("/uav0/usb_cam/image_raw", 1,
+    image_sub_ = nh_.subscribe("/uav0/usb_cam/image_raw", 1,
       &MyDetector::imageCb, this);
-    image_pub_ = it_.advertise("/MyDetector/output_video", 1);
-
-    cv::namedWindow(OPENCV_WINDOW);
+    image_pub_ = nh_.advertise<const sensor_msgs::Image>("/MyDetector/output_video", 1);
+    namedWindow(OPENCV_WINDOW);
   }
 
   ~MyDetector()
   {
-    cv::destroyWindow(OPENCV_WINDOW);
+    destroyWindow(OPENCV_WINDOW);
   }
 
   void imageCb(const sensor_msgs::ImageConstPtr& msg)
   {
     Mat bbox;
     cv_bridge::CvImagePtr cv_ptr;
+    cv_bridge::CvImage oimg;
     try
     {
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -49,22 +49,15 @@ public:
       return;
     }
 
-    if(qrdetector.detect(cv_ptr->image, bbox))
-    {
-      // Draw an example circle on the video stream
-      int n = bbox.rows;
-      for(int i = 0 ; i < n ; i++)
-      {
-        line(cv_ptr->image, Point2i(bbox.at<float>(i,0),bbox.at<float>(i,1)), Point2i(bbox.at<float>((i+1) % n,0), bbox.at<float>((i+1) % n,1)), Scalar(255,0,0), 3);
-      }
+    Canny(cv_ptr->image, oimg.image, 30, 90, 5);
 
-      // Update GUI Window
-      cv::imshow(OPENCV_WINDOW, cv_ptr->image);
-      cv::waitKey(3);
+    imshow(OPENCV_WINDOW, cv_ptr->image);
+    image_pub_.publish(oimg.toImageMsg());
+  }
 
-      // Output modified video stream
-      image_pub_.publish(cv_ptr->toImageMsg());
-    }
+  void spin(void)
+  {
+    ros::spin();
   }
 };
 
@@ -72,6 +65,6 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "MyDetector");
   MyDetector md;
-  ros::spin();
+  md.spin();
   return 0;
 }

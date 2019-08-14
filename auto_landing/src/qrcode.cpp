@@ -5,7 +5,7 @@
 // Copyright (C) 2018, Intel Corporation, all rights reserved.
 // Third party copyrights are property of their respective owners.
 
-
+#include <ros/ros.h>
 #include <cv.hpp>
 #include <limits>
 #include <cmath>
@@ -307,16 +307,16 @@ bool QRDetect::localization()
     if( list_lines_x.empty() ) { return false; }
     vector<Point2f> list_lines_y = separateVerticalLines(list_lines_x);
     if( list_lines_y.size() < 3 ) { return false; }
-
+    ROS_INFO("pos 1");
     vector<Point2f> centers;
     Mat labels;
     kmeans(list_lines_y, 3, labels,
            TermCriteria( TermCriteria::EPS + TermCriteria::COUNT, 10, 0.1),
            3, KMEANS_PP_CENTERS, localization_points);
-
+    ROS_INFO("pos 3");
     fixationPoints(localization_points);
     if (localization_points.size() != 3) { return false; }
-
+    ROS_INFO("pos 4");
     if (coeff_expansion > 1.0)
     {
         const int width  = cvRound(bin_barcode.size().width  / coeff_expansion);
@@ -330,7 +330,7 @@ bool QRDetect::localization()
             localization_points[i] /= coeff_expansion;
         }
     }
-
+    ROS_INFO("pos 2");
     for (size_t i = 0; i < localization_points.size(); i++)
     {
         for (size_t j = i + 1; j < localization_points.size(); j++)
@@ -782,7 +782,7 @@ bool QRCodeDetector::detect(InputArray in, OutputArray points) const
 
     QRDetect qrdet;
     qrdet.init(inarr, p->epsX, p->epsY);
-    if (!qrdet.localization()) { return false; }
+//    if (!qrdet.localization()) { return false; }
     if (!qrdet.computeTransformationPoints()) { return false; }
     vector<Point2f> pnts2f = qrdet.getTransformationPoints();
     Mat(pnts2f).convertTo(points, points.fixedType() ? points.type() : CV_32FC2);
